@@ -29,7 +29,12 @@ namespace ClassyApiWinForm
         {
             //debugOutput(txtInput.Text);
             deserialiseJSON(txtInput.Text);
-            CreateRequest();
+            string urlRequestReturned = CreateRequest("/campaigns");
+            debugOutput(" ");
+            debugOutput(urlRequestReturned);
+            string jsonRaw = MakeRequest(urlRequestReturned);
+            debugOutput("");
+            debugOutput(jsonRaw);
 
         }
 
@@ -94,39 +99,52 @@ namespace ClassyApiWinForm
 
         #region Post Request
 
-        public string CreateRequest()
+        public string CreateRequest(string queryString)
         {
-            try
-            {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://api.classy.org/oauth2/auth");
-                request.Method = "POST";
-                request.Host = "api.classy.org";
-                request.ContentType = "application/x-www-form-urlencoded";
-                string postData = "grant_type=client_credentials&client_id=LVcPCqPrcz1sJbYn&client_secret=zdvmtIzhrGXWbqNu";
-                byte[] bytes = Encoding.UTF8.GetBytes(postData);
-                request.ContentLength = bytes.Length;
-                request.Timeout = 10000;
+            string classyAuthKey = "1c527e5b93474380a2393f8c53df356e";
+            string UrlRequest = "https://api.classy.org/2.0/organizations/11145" + queryString + "?output=json" +
+                "&key=" + classyAuthKey;
+            return (UrlRequest);
+            //Function CreateRequest(queryString As String) As String
+            //    Dim BingMapsKey As String = "Ar0txYadBSG_GtoM1NHgnL7-CY02gx76PHQ4riJuLQoWm9F5P6tbQH6Q0Rdm0MDd"
 
-                //ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                //ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
-                Stream requestStream = request.GetRequestStream();
-                requestStream.Write(bytes, 0, bytes.Length);
+            //    Dim UrlRequest As String = "http://dev.virtualearth.net/REST/v1/Locations/" +
+            //                     queryString +
+            //                     "?output=json" +
+            //                     " &key=" + BingMapsKey
+            //    Return(UrlRequest)
+            //End Function
+            //try
+            //{
+            //    HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://api.classy.org/oauth2/auth");
+            //    request.Method = "POST";
+            //    request.Host = "api.classy.org";
+            //    request.ContentType = "application/x-www-form-urlencoded";
+            //    string postData = "grant_type=client_credentials&client_id=LVcPCqPrcz1sJbYn&client_secret=zdvmtIzhrGXWbqNu";
+            //    byte[] bytes = Encoding.UTF8.GetBytes(postData);
+            //    request.ContentLength = bytes.Length;
+            //    request.Timeout = 10000;
 
-                WebResponse response = request.GetResponse();
-                Stream stream = response.GetResponseStream();
-                StreamReader reader = new StreamReader(stream);
+            //    //ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            //    //ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+            //    Stream requestStream = request.GetRequestStream();
+            //    requestStream.Write(bytes, 0, bytes.Length);
 
-                var result = reader.ReadToEnd();
-                stream.Dispose();
-                reader.Dispose();
+            //    WebResponse response = request.GetResponse();
+            //    Stream stream = response.GetResponseStream();
+            //    StreamReader reader = new StreamReader(stream);
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                debugOutput("Error : " + ex.Message);
-                return "wrong";
-            }
+            //    var result = reader.ReadToEnd();
+            //    stream.Dispose();
+            //    reader.Dispose();
+
+            //    return result;
+            //}
+            //catch (Exception ex)
+            //{
+            //    debugOutput("Error : " + ex.Message);
+            //    return "wrong";
+            //}
         }
 
         #endregion
@@ -136,8 +154,31 @@ namespace ClassyApiWinForm
 
         public string MakeRequest(string requestUrl)
         {
-
-            return requestUrl;
+            try
+            {
+                WebRequest request = WebRequest.Create(requestUrl);
+                using (WebResponse response = ((HttpWebRequest)request).GetResponse())
+                {
+                    if(((HttpWebResponse)response).StatusCode != HttpStatusCode.OK)
+                    {
+                        throw new Exception(string.Format(
+                            "Server errot (HTTP {0}: {1}.",
+                            ((HttpWebResponse)response).StatusCode,
+                            ((HttpWebResponse)response).StatusDescription));
+                    }
+                    using (Stream responseStream = response.GetResponseStream())
+                    {
+                        StreamReader reader = new StreamReader(responseStream, Encoding.GetEncoding("utf-8"));
+                        String jsonText = reader.ReadToEnd();
+                        return jsonText;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                debugOutput("Error : " + ex.Message);
+                return "";
+            }
         }
 
 
