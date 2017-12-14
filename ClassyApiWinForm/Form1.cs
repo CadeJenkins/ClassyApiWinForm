@@ -29,10 +29,10 @@ namespace ClassyApiWinForm
         {
             //debugOutput(txtInput.Text);
             deserialiseJSON(txtInput.Text);
-            string urlRequestReturned = CreateRequest("/campaigns");
-            debugOutput(" ");
-            debugOutput(urlRequestReturned);
-            string jsonRaw = MakeRequest(urlRequestReturned);
+            //string urlRequestReturned = CreateRequest("/campaigns");
+           // debugOutput(" ");
+           // debugOutput(urlRequestReturned);
+           string jsonRaw = MakeRequest("https://api.classy.org/oauth2/auth");
             debugOutput("");
             debugOutput(jsonRaw);
 
@@ -166,10 +166,14 @@ namespace ClassyApiWinForm
                             ((HttpWebResponse)response).StatusCode,
                             ((HttpWebResponse)response).StatusDescription));
                     }
+
                     using (Stream responseStream = response.GetResponseStream())
                     {
                         StreamReader reader = new StreamReader(responseStream, Encoding.GetEncoding("utf-8"));
                         String jsonText = reader.ReadToEnd();
+
+                        reader.Close();
+                        response.Close();
                         return jsonText;
                     }
                 }
